@@ -189,18 +189,21 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 							seq3utrtransc = seq3utr.transcribe().complement()
 							
 							#align mirna to genes
+							#align only seed sequence to utr+gene+utr
 							completegen = seq5utrtransc + seqgentransc + seq3utrtransc
 							completegen = completegen.upper()
 											
-							#matrix = matlist.blosum62
+							seed = seqmirna[-8:-1]
 							
 							#for a in pairwise2.align.localxs(completegen, seqmirna, -10, -0.5):
 							#	print(format_alignment(*a))
 							#	exit()
 							
 							#returns alignment: list of Sequences, score, start, end position
-							alignment = pairwise2.align.localxs(completegen, seqmirna, -10, -0.5)
+							alignment = pairwise2.align.localxs(completegen, seed, -10, -0.5)
 							print alignment
+							
+							print alignment[0][1]
 							
 							#if alignment[0][3] <= size5utr:
 							#	print "5 utr"
@@ -220,11 +223,6 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 				#consider experiment type
 				#compare alignment position to size of 5utr, gen and 3utr
 				
-				
-				#plt.plot([alignment[0][3],5,6], [1, 2, 2])
-				#plt.ylabel("Number of occurances")
-				#plt.xlabel("Alignment position")
-				#plt.show()
 						
 						
 
