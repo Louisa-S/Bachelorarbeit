@@ -7,7 +7,7 @@ from Bio import pairwise2
 from Bio.pairwise2 import format_alignment
 from Bio.SubsMat import MatrixInfo as matlist
 from Bio.Align import AlignInfo
-
+import matplotlib.pyplot as plt
 from itertools import groupby
 #from __future__ import division
 
@@ -286,7 +286,11 @@ def analysematrix(matrix):
 		
 	dimension = len(matrix)
 								
+	perces = []
+	xaxis = []
 	
+	for x in range(22):
+		xaxis.append(x)
 	
 	
 	#for every character in the sequence, assuming 22
@@ -299,9 +303,13 @@ def analysematrix(matrix):
 		perc = float(sumx) / float(dimension)
 		
 		print perc	
-
+		
+		perces.append(perc)
+		
+		
+	plt.plot(xaxis, perces)
 	
-	
+	plt.show()
 	
 	
 	
