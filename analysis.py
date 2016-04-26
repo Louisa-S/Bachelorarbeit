@@ -9,6 +9,7 @@ from Bio.SubsMat import MatrixInfo as matlist
 from Bio.Align import AlignInfo
 
 from itertools import groupby
+#from __future__ import division
 
 
 #returns list of nm numbers and gene symbols
@@ -125,6 +126,9 @@ def parsegenes (filename):
 #build reverse complement of genes !!!		
 def findmatch(mirtarbase, mirbase, genes, gentable):
 	
+	#matrix with one mirna per line
+	#X for match in alignment, O for mismatch
+	matrix = []
 	for mirtar in mirtarbase:
 		match = []
 		found = False
@@ -205,17 +209,18 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 							
 							#print alignment[0][1]
 							
-							alignanalysis(alignment, len(seqmirna))
-							#if alignment[0][3] <= size5utr:
-							#	print "5 utr"
-							#else:
-							#	if alignment[0][3] <= sizegen:
-							#		print "in gene"
-							#	else:
-							#		print "3 utr"
+							#computes a line for the matrix, one line is one startposition of alignment
+							for parts in alignanalysis(alignment, len(seqmirna)):
+								
+								matrix.append(parts)
+								
+								print matrix
+								
+							
+							analysematrix(matrix)				
 							
 							exit()
-							#print alignment
+							
 							break
 				break
 				
@@ -224,7 +229,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 				#consider experiment type
 				#compare alignment position to size of 5utr, gen and 3utr
 						
-						
+	analysematrix(matrix)				
 
 
 def genconverter(symbol, gentable):
@@ -238,6 +243,7 @@ def genconverter(symbol, gentable):
 
 
 
+#computes list with X for match and O for mismatch in aligment
 def alignanalysis(alignment, mirnasize):
 	print "aligner"
 	
@@ -259,11 +265,7 @@ def alignanalysis(alignment, mirnasize):
 		
 			print mirnaseq
 			print mseq
-	
-	
-	#print startpos
-	
-	
+		
 			for index in range(mirnasize):
 				if mirnaseq[index] == mseq[index]:
 					matrix.append("X")
@@ -280,9 +282,24 @@ def alignanalysis(alignment, mirnasize):
 	
 	
 	
+def analysematrix(matrix):
+		
+	dimension = len(matrix)
+								
 	
 	
 	
+	#for every character in the sequence, assuming 22
+	for i in range(22):	
+		sumx = 0 	
+		for line in matrix:
+			if line[i] == "X":
+				sumx = sumx + 1
+					 
+		perc = float(sumx) / float(dimension)
+		
+		print perc	
+
 	
 	
 	
