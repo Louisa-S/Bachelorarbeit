@@ -193,18 +193,19 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 							completegen = seq5utrtransc + seqgentransc + seq3utrtransc
 							completegen = completegen.upper()
 											
-							seed = seqmirna[-8:-1]
+							#seed = seqmirna[-8:-1]
 							
 							#for a in pairwise2.align.localxs(completegen, seqmirna, -10, -0.5):
 							#	print(format_alignment(*a))
 							#	exit()
 							
-							#returns alignment: list of Sequences, score, start, end position
-							alignment = pairwise2.align.localxs(completegen, seed, -10, -0.5)
-							print alignment
+							#returns alignment: list of Sequences(2), score, start, end position
+							alignment = pairwise2.align.localxs(completegen, seqmirna, -10, -0.5)
+							#print alignment
 							
-							print alignment[0][1]
+							#print alignment[0][1]
 							
+							alignanalysis(alignment, len(seqmirna))
 							#if alignment[0][3] <= size5utr:
 							#	print "5 utr"
 							#else:
@@ -222,7 +223,6 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 			
 				#consider experiment type
 				#compare alignment position to size of 5utr, gen and 3utr
-				
 						
 						
 
@@ -237,3 +237,59 @@ def genconverter(symbol, gentable):
 	return "Gensymbol not found!"
 
 
+
+def alignanalysis(alignment, mirnasize):
+	print "aligner"
+	
+	startpos = []	
+	
+	
+	
+	for a in alignment:
+		i = 0
+		matrix = []
+		
+		while (a[1][i] == "-"):
+			i = i+1
+		
+		if i not in startpos:
+			startpos.append(i)
+			mirnaseq = a[1][i:i+mirnasize]
+			mseq = a[0][i:i+mirnasize]
+		
+			print mirnaseq
+			print mseq
+	
+	
+	#print startpos
+	
+	
+			for index in range(mirnasize):
+				if mirnaseq[index] == mseq[index]:
+					matrix.append("X")
+				else:
+					matrix.append("O")
+						
+			
+			print matrix
+	
+	
+			yield matrix
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	 
