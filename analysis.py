@@ -9,7 +9,6 @@ from Bio.SubsMat import MatrixInfo as matlist
 from Bio.Align import AlignInfo
 import matplotlib.pyplot as plt
 from itertools import groupby
-#from __future__ import division
 
 
 #returns list of nm numbers and gene symbols
@@ -54,7 +53,14 @@ def mirbaseparser(filename):
 				m = m[0].split(";")
 			
 				mirnalist.append(m)
-		
+	
+	maxi = len(mirnalist[0][5])
+	
+	for m1 in mirnalist:
+		if maxi < len(m1[5]):
+			maxi = len(m1[5])
+	
+	print maxi			
 	return mirnalist
 
 def mirtarparser(filename):
@@ -143,7 +149,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 			if mi[2] in mirtar[0].lower():
 				#print mirtar[0]
 				#print mi[2]
-				print "found two matching mirna names"
+				#print "found two matching mirna names"
 				match.append(mi[3])
 				found = True
 			else:
@@ -151,7 +157,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					if mi[4] in mirtar[0].lower():
 						#print mirtar[0]
 						#print mi[4]
-						print "found two matching mirna names"
+						#print "found two matching mirna names"
 						match.append(mi[5])
 						found = True
 					# nm = converted nm number
@@ -214,12 +220,12 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 								
 								matrix.append(parts)
 								
-								print matrix
+								#print matrix
 								
 							
-							analysematrix(matrix)				
+							#analysematrix(matrix)				
 							
-							exit()
+							#exit()
 							
 							break
 				break
@@ -245,7 +251,7 @@ def genconverter(symbol, gentable):
 
 #computes list with X for match and O for mismatch in aligment
 def alignanalysis(alignment, mirnasize):
-	print "aligner"
+	#print "aligner"
 	
 	startpos = []	
 	
@@ -263,8 +269,8 @@ def alignanalysis(alignment, mirnasize):
 			mirnaseq = a[1][i:i+mirnasize]
 			mseq = a[0][i:i+mirnasize]
 		
-			print mirnaseq
-			print mseq
+			#print mirnaseq
+			#print mseq
 		
 			for index in range(mirnasize):
 				if mirnaseq[index] == mseq[index]:
@@ -273,8 +279,14 @@ def alignanalysis(alignment, mirnasize):
 					matrix.append("O")
 						
 			
-			print matrix
-	
+			matrix.reverse()
+
+			
+			gaps = mirnasize
+			while gaps < 29:
+				matrix.append("-")
+				gaps = gaps + 1
+			#print matrix
 	
 			yield matrix
 	
@@ -284,27 +296,36 @@ def alignanalysis(alignment, mirnasize):
 	
 def analysematrix(matrix):
 		
-	dimension = len(matrix)
+	#the dimension is the number of mirnas analysed
+	
 								
 	perces = []
 	xaxis = []
 	
-	for x in range(22):
+	for x in range(28):
 		xaxis.append(x)
 	
 	
-	#for every character in the sequence, assuming 22
-	for i in range(22):	
+	#for every character in the sequence, assuming 28, if mirnalength is < 28 it is filled with gaps "-" at the end
+	for i in range(28):	
 		sumx = 0 	
+		dimension = len(matrix)
+		
 		for line in matrix:
 			if line[i] == "X":
 				sumx = sumx + 1
-					 
-		perc = float(sumx) / float(dimension)
+			else:
+				if line[i] == "-":
+					dimension = dimension - 1
+			
+		if dimension > 0:
+			perc = float(sumx) / float(dimension)
 		
-		print perc	
+			print perc	
 		
-		perces.append(perc)
+			perces.append(perc)
+		else:
+			perces.append(2)
 		
 		
 	plt.plot(xaxis, perces)
