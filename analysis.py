@@ -13,8 +13,8 @@ from itertools import groupby
 
 #returns list of nm numbers and gene symbols
 def symbolconverter(filename):
-	table = []
-	result = []
+	table = dict()
+	result = dict()
 	gene = []
 	with open(filename, "r") as f:
 		next(f)
@@ -23,27 +23,36 @@ def symbolconverter(filename):
 			s1 = s1[0].split("\r")
 			s1 = s1[0].split("\t")
 			
-			table.append(s1)
-			
-	table2 = sorted(table, key = lambda symbol: symbol[1])
+			if s1[1] not in table:
+				nm = []
+				nm.append(s1[0])				
+				table[s1[1]] = nm
 		
-	for key, group in groupby(table2, lambda x: x[1]):
-		gene.append(key)		
-		nmlist = []
-		for nm in group:
-			nmlist.append(nm[0])
-			
-		gene.append(nmlist)		
-		result.append(gene)
-		gene = []
+			else:
+				nm = []
+				nm = table[s1[1]]
+				nm.append(s1[0])
+				table[s1[1]] = nm 
+				
+	#table2 = sorted(table, key = lambda symbol: symbol[1])
 		
+	#for key, group in groupby(table2, lambda x: x[1]):
+	#	gene.append(key)		
+	#	nmlist = []
+	#	for nm in group:
+	#		nmlist.append(nm[0])
+	#		
+	#	gene.append(nmlist)		
+	#	result.append(gene)
+	#	gene = []
+	#print table	
 	return result
 
 
 
 #returns list of tupels with lines of table
 def mirbaseparser(filename):
-	mirnalist = []
+	mirnalist = dict()
 	with open(filename) as f:
 		next(f)
 		for mirna in f:
@@ -52,15 +61,15 @@ def mirbaseparser(filename):
 				m = m[0].split("\r")
 				m = m[0].split(";")
 			
-				mirnalist.append(m)
+				mirnalist[m[0]] = m[1:]
 	
-	maxi = len(mirnalist[0][5])
+	#maxi = len(mirnalist[0][5])
 	
-	for m1 in mirnalist:
-		if maxi < len(m1[5]):
-			maxi = len(m1[5])
+	#for m1 in mirnalist:
+	#	if maxi < len(m1[5]):
+	#		maxi = len(m1[5])
 	
-	print maxi			
+	#print maxi			
 	return mirnalist
 
 def mirtarparser(filename):
@@ -80,7 +89,7 @@ def mirtarparser(filename):
 
 def parsegenes (filename):
 	with open(filename) as gene:
-		genelist = []
+		genelist = dict()
 		gen = []
 		genexist = False
 		utr5 = ""
@@ -97,8 +106,14 @@ def parsegenes (filename):
 				if line[0] == ">":
 					gen.append(utr5)
 					gen.append(genseq)
-					gen.append(utr3)		
-					genelist.append(gen)
+					gen.append(utr3)
+					
+					nm = gen[0].split(" ")
+		
+					nm = nm[0][14:]
+							
+					genelist[nm] = gen[1:]	
+				
 					
 					gen = []
 					gen.append(line)
@@ -122,8 +137,13 @@ def parsegenes (filename):
 		
 		gen.append(utr5)
 		gen.append(genseq)
-		gen.append(utr3)		
-		genelist.append(gen)	
+		gen.append(utr3)
+		
+		nm = gen[0].split(" ")
+		
+		nm = nm[0][14:]
+				
+		genelist[nm] = gen[1:]	
 
 	
 	return genelist
@@ -140,11 +160,35 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 		found = False
 		
 		#there can be more than 1 NM number 
-		nm = genconverter(mirtar[1], gentable)
-		
-		if nm == "Gensymbol not found!":
+		if mirtar[1] in gentable:
+			nm = gentable[mirtar[1]]
+		else:
+			print "Gensymbol not found!"
 			continue
+			
+		print mirtar[0]
+		print mirtar[0][:-3]
 		
+		if mirtar[0].lower() in mirbase:
+			mi = mirbase[mirtar[0].lower()]
+			print mi
+			if mi[1] == mirtar[0].lower():
+				match.append(mi[2])
+			else:
+				if mi[2] != "":
+					match.append(mi[4])
+		else:
+			if mirtar[0][:-3].lower() in mirbase:
+				mi = mirbase[mirtar[0][:-3].lower()]
+				if mi[1] == mirtar[0].lower():
+					match.append(mi[2])
+				else:
+					if mi[2] != "":
+						match.append(mi[4])
+			
+			
+			
+			 
 		for mi in mirbase:
 			if mi[2] in mirtar[0].lower():
 				#print mirtar[0]
