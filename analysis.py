@@ -10,6 +10,7 @@ from Bio.Align import AlignInfo
 import matplotlib.pyplot as plt
 from itertools import groupby
 
+#command: time python mirna.py utr.txt hsa_MTI_short2.csv miRNA_short.csv ucsc_symbols_nm.txt 
 
 #returns list of nm numbers and gene symbols
 def symbolconverter(filename):
@@ -60,8 +61,11 @@ def mirbaseparser(filename):
 				m = mirna.split("\n")
 				m = m[0].split("\r")
 				m = m[0].split(";")
-			
-				mirnalist[m[0]] = m[1:]
+				
+				mirnalist[m[2]] = m[3]
+				
+				if m[4] != "":
+					mirnalist[m[4]] = m[5]
 	
 	#maxi = len(mirnalist[0][5])
 	
@@ -163,34 +167,41 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 		if mirtar[1] in gentable:
 			nm = gentable[mirtar[1]]
 		else:
-			print "Gensymbol not found!"
+			print "Gensymbol not found: "+mirtar[1]
+			#print mirtar[1]
 			continue
 			
-		print mirtar[0]
-		print mirtar[0][:-3]
+		#print mirtar[0]
+		#print mirtar[0][:-3]
 		
 		if mirtar[0].lower() in mirbase:
 			mi = mirbase[mirtar[0].lower()]
-			print mi
-			if mi[1] == mirtar[0].lower():
-				match.append(mi[2])
-			else:
-				if mi[3] != "":
-					match.append(mi[4])
+			#print mi
+			match.append(mi)
+			#if mi[1] == mirtar[0].lower():
+			#	match.append(mi[2])
+			#else:
+			#	if mi[3] != "":
+			#		match.append(mi[4])
 		else:
-			if mirtar[0][:-3].lower() in mirbase:
-				mi = mirbase[mirtar[0][:-3].lower()]
-				if mi[1] == mirtar[0].lower():
-					match.append(mi[2])
-				else:
-					if mi[3] != "":
-						match.append(mi[4])
+			continue
+		#else:
+		#	if mirtar[0][:-3].lower() in mirbase:
+		#		mi = mirbase[mirtar[0][:-3].lower()]
+		#		if mi[1] == mirtar[0].lower():
+		#			match.append(mi[2])
+		#		else:
+		#			if mi[3] != "":
+		#				match.append(mi[4])
 			
 		for n in nm:
 			if n in genes:
+				
+				match.append(genes[n][0])			
 				match.append(genes[n][1])			
-				match.append(genes[n][2])			
-				match.append(genes[n][3])			
+				match.append(genes[n][2])	
+				
+				#print match		
 			 
 				seqmirna = Seq(match[0], RNAAlphabet())
 				seq5utr = Seq(match[1]) 
@@ -229,95 +240,74 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 		
 		
 		
-		analysematrix(matrix)				
+	analysematrix(matrix)				
 
 		
 		
 		
 		
 		
+	"""
+	
+	for mi in mirbase:
+		if mi[2] in mirtar[0].lower():
+			#print mirtar[0]
+			#print mi[2]
+			#print "found two matching mirna names"
+			match.append(mi[3])
+			found = True
+		else:
+			if mi[4] != "":
+				if mi[4] in mirtar[0].lower():
+					#print mirtar[0]
+					#print mi[4]
+					#print "found two matching mirna names"
+					match.append(mi[5])
+					found = True
+				# nm = converted nm number
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		"""
-		
-		for mi in mirbase:
-			if mi[2] in mirtar[0].lower():
-				#print mirtar[0]
-				#print mi[2]
-				#print "found two matching mirna names"
-				match.append(mi[3])
-				found = True
-			else:
-				if mi[4] != "":
-					if mi[4] in mirtar[0].lower():
-						#print mirtar[0]
-						#print mi[4]
-						#print "found two matching mirna names"
-						match.append(mi[5])
-						found = True
-					# nm = converted nm number
-			
-			if found:	
-				for n in nm:
-					if len(match) > 1:
-						match.pop()
-						match.pop()
-						match.pop()
-					#print nm
-					#print gen[0]
-					# if first line starting with > contains nm number
-					for gen in genes:							
-						if n in gen[0]:#.find(nm) != -1:	#result list or just one?!?		
-							match.append(gen[1]) #utr5p
-							match.append(gen[2]) #exon
-							match.append(gen[3]) #utr3p
+		if found:	
+			for n in nm:
+				if len(match) > 1:
+					match.pop()
+					match.pop()
+					match.pop()
+				#print nm
+				#print gen[0]
+				# if first line starting with > contains nm number
+				for gen in genes:							
+					if n in gen[0]:#.find(nm) != -1:	#result list or just one?!?		
+						match.append(gen[1]) #utr5p
+						match.append(gen[2]) #exon
+						match.append(gen[3]) #utr3p
+						
+						#print "found matching refseq number"
+						#print gen[0]
+						#print nm
+						
+						# further align this match, reverse complement of genes!! 
+						#print match
+						
+					
+						#build complements of genes	
+						
 							
-							#print "found matching refseq number"
-							#print gen[0]
-							#print nm
-							
-							# further align this match, reverse complement of genes!! 
-							#print match
+							#print matrix
 							
 						
-							#build complements of genes	
-							
-								
-								#print matrix
-								
-							
-							#analysematrix(matrix)				
-							
-							#exit()
-							
-							break
-				break
-				
-				#break"""
+						#analysematrix(matrix)				
+						
+						#exit()
+						
+						break
+			break
 			
+			#break"""
+		
 				#consider experiment type
 				#compare alignment position to size of 5utr, gen and 3utr
 						
-	
+"""	
 
 def genconverter(symbol, gentable):
 	for gen in gentable:
@@ -327,7 +317,7 @@ def genconverter(symbol, gentable):
 			return gen[1]
 	
 	return "Gensymbol not found!"
-
+"""
 
 
 #computes list with X for match and O for mismatch in aligment
