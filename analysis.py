@@ -68,12 +68,12 @@ def mirbaseparser(filename):
 					mirnalist[m[4]] = m[5]
 	
 	#maxi = len(mirnalist[0][5])
-	
+	#
 	#for m1 in mirnalist:
 	#	if maxi < len(m1[5]):
 	#		maxi = len(m1[5])
-	
-	#print maxi			
+	#
+	#print maxi		
 	return mirnalist
 
 def mirtarparser(filename):
@@ -156,6 +156,14 @@ def parsegenes (filename):
 #build reverse complement of genes !!!		
 def findmatch(mirtarbase, mirbase, genes, gentable):
 	
+	maxi = 0
+	
+	for m1 in mirbase:
+		if maxi < len(mirbase[m1]):
+			maxi = len(mirbase[m1])
+	
+	print maxi	
+	
 	#matrix with one mirna per line
 	#X for match in alignment, O for mismatch
 	matrix = []
@@ -233,14 +241,14 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 				#print alignment[0][1]
 				
 				#computes a line for the matrix, one line is one startposition of alignment
-				for parts in alignanalysis(alignment, len(seqmirna)):
+				for parts in alignanalysis(alignment, len(seqmirna), maxi):
 					
 					matrix.append(parts)
 			
 		
+			
 		
-		
-	analysematrix(matrix)				
+	analysematrix(matrix, maxi)				
 
 		
 		
@@ -321,7 +329,7 @@ def genconverter(symbol, gentable):
 
 
 #computes list with X for match and O for mismatch in aligment
-def alignanalysis(alignment, mirnasize):
+def alignanalysis(alignment, mirnasize, maxi):
 	#print "aligner"
 	
 	startpos = []	
@@ -354,7 +362,7 @@ def alignanalysis(alignment, mirnasize):
 
 			
 			gaps = mirnasize
-			while gaps < 29:
+			while gaps < maxi+1:
 				matrix.append("-")
 				gaps = gaps + 1
 			#print matrix
@@ -365,7 +373,7 @@ def alignanalysis(alignment, mirnasize):
 	
 	
 	
-def analysematrix(matrix):
+def analysematrix(matrix, maxlength):
 		
 	#the dimension is the number of mirnas analysed
 	
@@ -373,12 +381,12 @@ def analysematrix(matrix):
 	perces = []
 	xaxis = []
 	
-	for x in range(28):
+	for x in range(maxlength+1):
 		xaxis.append(x)
 	
 	
 	#for every character in the sequence, assuming 28, if mirnalength is < 28 it is filled with gaps "-" at the end
-	for i in range(28):	
+	for i in range(maxlength+1):	
 		sumx = 0 	
 		dimension = len(matrix)
 		
@@ -391,15 +399,15 @@ def analysematrix(matrix):
 			
 		if dimension > 0:
 			perc = float(sumx) / float(dimension)
-		
-			print perc	
+	
+			#print perc	
 		
 			perces.append(perc)
 		else:
-			perces.append(2)
+			perces.append(0)
 		
 		
-	plt.plot(xaxis, perces)
+	plt.bar(xaxis, perces)
 	
 	plt.show()
 	
