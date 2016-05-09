@@ -77,7 +77,8 @@ def mirbaseparser(filename):
 	return mirnalist
 
 def mirtarparser(filename):
-	mirnalist = []
+	mirnalist = dict()
+	#genesymbols = dict()
 	with open(filename) as f:
 		next(f)
 		for mirna in f:
@@ -85,8 +86,26 @@ def mirtarparser(filename):
 			m = m[0].split("\r")
 			m = m[0].split(";")
 			
-			mirnalist.append(m)
-		
+			#if m[1] not in genesymbols:
+			#	genesymbols[m[1]] = 1
+			
+			if m[0] in mirnalist:
+				if m[1] not in mirnalist[m[0]]:
+					genes = mirnalist[m[0]]
+					genes.append(m[1])
+					mirnalist[m[0]] = genes
+			else:
+				genes = []
+				genes.append(m[1])
+				mirnalist[m[0]] = genes
+			
+			#mirnalist.append(m)
+	
+	#with open("geneconversion.txt", "w") as f:
+	#	for x in genesymbols:
+	#		f.write(x)
+	#		f.write("\n")
+			
 	return mirnalist	
 	
 
@@ -167,86 +186,90 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 	#matrix with one mirna per line
 	#X for match in alignment, O for mismatch
 	matrix = []
-	for mirtar in mirtarbase:
-		match = []
-		found = False
+	for mlist in mirtarbase:
 		
-		#there can be more than 1 NM number 
-		if mirtar[1] in gentable:
-			nm = gentable[mirtar[1]]
-		else:
-			print "Gensymbol not found: "+mirtar[1]
-			#print mirtar[1]
-			continue
+		for mirtar in mirtarbase[mlist]:
 			
-		#print mirtar[0]
-		#print mirtar[0][:-3]
-		
-		if mirtar[0].lower() in mirbase:
-			mi = mirbase[mirtar[0].lower()]
-			#print mi
-			match.append(mi)
-			#if mi[1] == mirtar[0].lower():
-			#	match.append(mi[2])
+			match = []
+			found = False
+			
+			#there can be more than 1 NM number 
+			if mirtar in gentable:
+				nm = gentable[mirtar]
+			else:
+				print "Gensymbol not found: "+mirtar
+				#print mirtar[1]
+				continue
+				
+			#print mirtar[0]
+			#print mirtar[0][:-3]
+			
+			if mlist.lower() in mirbase:
+				mi = mirbase[mlist.lower()]
+				#print mi
+				match.append(mi)
+				#if mi[1] == mirtar[0].lower():
+				#	match.append(mi[2])
+				#else:
+				#	if mi[3] != "":
+				#		match.append(mi[4])
+			else:
+				continue
 			#else:
-			#	if mi[3] != "":
-			#		match.append(mi[4])
-		else:
-			continue
-		#else:
-		#	if mirtar[0][:-3].lower() in mirbase:
-		#		mi = mirbase[mirtar[0][:-3].lower()]
-		#		if mi[1] == mirtar[0].lower():
-		#			match.append(mi[2])
-		#		else:
-		#			if mi[3] != "":
-		#				match.append(mi[4])
-			
-		for n in nm:
-			if n in genes:
+			#	if mirtar[0][:-3].lower() in mirbase:
+			#		mi = mirbase[mirtar[0][:-3].lower()]
+			#		if mi[1] == mirtar[0].lower():
+			#			match.append(mi[2])
+			#		else:
+			#			if mi[3] != "":
+			#				match.append(mi[4])
 				
-				match.append(genes[n][0])			
-				match.append(genes[n][1])			
-				match.append(genes[n][2])	
-				
-				#print match		
-			 
-				seqmirna = Seq(match[0], RNAAlphabet())
-				seq5utr = Seq(match[1]) 
-				size5utr = len(match[1])
-				seqgen = Seq(match[2])
-				sizegen = len(match[2])
-				seq3utr = Seq(match[3])
-				size3utr = len(match[3])
-				#print sizegen
-				seq5utrtransc = seq5utr.transcribe().complement()
-				seqgentransc = seqgen.transcribe().complement()
-				seq3utrtransc = seq3utr.transcribe().complement()
-				
-				#align mirna to genes
-				#align only seed sequence to utr+gene+utr
-				completegen = seq5utrtransc + seqgentransc + seq3utrtransc
-				completegen = completegen.upper()
+			for n in nm:
+				#print n
+				if n in genes:
 								
-				#seed = seqmirna[-8:-1]
-				
-				#for a in pairwise2.align.localxs(completegen, seqmirna, -10, -0.5):
-				#	print(format_alignment(*a))
-				#	exit()
-				
-				#returns alignment: list of Sequences(2), score, start, end position
-				alignment = pairwise2.align.localxs(completegen, seqmirna, -10, -0.5)
-				#print alignment
-				
-				#print alignment[0][1]
-				
-				#computes a line for the matrix, one line is one startposition of alignment
-				for parts in alignanalysis(alignment, len(seqmirna), maxi):
+					match.append(genes[n][0])			
+					match.append(genes[n][1])			
+					match.append(genes[n][2])	
 					
-					matrix.append(parts)
+					#print match		
+				 
+					seqmirna = Seq(match[0], RNAAlphabet())
+					seq5utr = Seq(match[1]) 
+					size5utr = len(match[1])
+					seqgen = Seq(match[2])
+					sizegen = len(match[2])
+					seq3utr = Seq(match[3])
+					size3utr = len(match[3])
+					#print sizegen
+					seq5utrtransc = seq5utr.transcribe().complement()
+					seqgentransc = seqgen.transcribe().complement()
+					seq3utrtransc = seq3utr.transcribe().complement()
+					
+					#align mirna to genes
+					#align only seed sequence to utr+gene+utr
+					completegen = seq5utrtransc + seqgentransc + seq3utrtransc
+					completegen = completegen.upper()
+									
+					#seed = seqmirna[-8:-1]
+					
+					#for a in pairwise2.align.localxs(completegen, seqmirna, -10, -0.5):
+					#	print(format_alignment(*a))
+					#	exit()
+					
+					#returns alignment: list of Sequences(2), score, start, end position
+					alignment = pairwise2.align.localxs(completegen, seqmirna, -10, -0.5)
+					#print alignment
+					
+					#print alignment[0][1]
+					
+					#computes a line for the matrix, one line is one startposition of alignment
+					for parts in alignanalysis(alignment, len(seqmirna), maxi):
+						
+						matrix.append(parts)
+				
 			
-		
-			
+				
 		
 	analysematrix(matrix, maxi)				
 
@@ -408,8 +431,9 @@ def analysematrix(matrix, maxlength):
 		
 		
 	plt.bar(xaxis, perces)
-	
-	plt.show()
+	plt.xlabel("positions in miRNA")
+	plt.ylabel("percentage of complementary bases")
+	plt.savefig("probability_positions.png")
 	
 	
 	
