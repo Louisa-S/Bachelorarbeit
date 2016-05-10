@@ -65,8 +65,8 @@ def mirbaseparser(filename):
 				mirnalist[m[2]] = m[3]
 				
 				if m[4] != "":
-					mirnalist[m[4]] = m[5]
-	
+					mirnalist[m[4]] = m[5][::-1]
+					
 	#maxi = len(mirnalist[0][5])
 	#
 	#for m1 in mirnalist:
@@ -176,6 +176,7 @@ def parsegenes (filename):
 def findmatch(mirtarbase, mirbase, genes, gentable):
 	
 	maxi = 0
+	notfound = 0
 	
 	for m1 in mirbase:
 		if maxi < len(mirbase[m1]):
@@ -199,6 +200,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 			else:
 				print "Gensymbol not found: "+mirtar
 				#print mirtar[1]
+				notfound += 1
 				continue
 				
 			#print mirtar[0]
@@ -272,7 +274,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 				
 		
 	analysematrix(matrix, maxi)				
-
+	print notfound
 		
 		
 		
@@ -336,8 +338,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 			#break"""
 		
 				#consider experiment type
-				#compare alignment position to size of 5utr, gen and 3utr
-						
+				
 """	
 
 def genconverter(symbol, gentable):
@@ -404,12 +405,12 @@ def analysematrix(matrix, maxlength):
 	perces = []
 	xaxis = []
 	
-	for x in range(maxlength+1):
+	for x in range(maxlength):
 		xaxis.append(x)
 	
 	
-	#for every character in the sequence, assuming 28, if mirnalength is < 28 it is filled with gaps "-" at the end
-	for i in range(maxlength+1):	
+	#for every character in the sequence, if mirnalength is < maxlength of a mirna it is filled with gaps "-" at the end
+	for i in range(maxlength):	
 		sumx = 0 	
 		dimension = len(matrix)
 		
@@ -434,6 +435,11 @@ def analysematrix(matrix, maxlength):
 	plt.xlabel("positions in miRNA")
 	plt.ylabel("percentage of complementary bases")
 	plt.savefig("probability_positions.png")
+	
+	with open("results.txt", "w") as result:
+		result.write("Positions"+"\t"+"Percentage of complementary bases"+"\n")
+		for i in range(maxlength):
+			result.write(str(i)+"\t"+str(perces[i])+"\n")
 	
 	
 	
