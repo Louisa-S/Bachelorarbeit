@@ -62,10 +62,10 @@ def mirbaseparser(filename):
 				m = m[0].split("\r")
 				m = m[0].split(";")
 				
-				mirnalist[m[2]] = m[3]
+				mirnalist[m[2].lower()] = m[3]
 				
 				if m[4] != "":
-					mirnalist[m[4]] = m[5][::-1]
+					mirnalist[m[4].lower()] = m[5][::-1]
 					
 	#maxi = len(mirnalist[0][5])
 	#
@@ -82,12 +82,15 @@ def mirtarparser(filename):
 	with open(filename) as f:
 		next(f)
 		for mirna in f:
+			if "(Weak)" in mirna:
+				continue
 			m = mirna.split("\n")
 			m = m[0].split("\r")
 			m = m[0].split(";")
 			
 			#if m[1] not in genesymbols:
 			#	genesymbols[m[1]] = 1
+			
 			
 			if m[0] in mirnalist:
 				if m[1] not in mirnalist[m[0]]:
@@ -190,7 +193,6 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 	for mlist in mirtarbase:
 		
 		for mirtar in mirtarbase[mlist]:
-			
 			match = []
 			found = False
 			
@@ -203,12 +205,11 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 				notfound += 1
 				continue
 				
-			#print mirtar[0]
 			#print mirtar[0][:-3]
 			
 			if mlist.lower() in mirbase:
 				mi = mirbase[mlist.lower()]
-				#print mi
+				
 				match.append(mi)
 				#if mi[1] == mirtar[0].lower():
 				#	match.append(mi[2])
@@ -227,14 +228,14 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 			#				match.append(mi[4])
 				
 			for n in nm:
-				#print n
+				
 				if n in genes:
 								
 					match.append(genes[n][0])			
 					match.append(genes[n][1])			
 					match.append(genes[n][2])	
 					
-					#print match		
+					print match		
 				 
 					seqmirna = Seq(match[0], RNAAlphabet())
 					seq5utr = Seq(match[1]) 
@@ -434,9 +435,9 @@ def analysematrix(matrix, maxlength):
 	plt.bar(xaxis, perces)
 	plt.xlabel("positions in miRNA")
 	plt.ylabel("percentage of complementary bases")
-	plt.savefig("probability_positions.png")
+	plt.savefig("probability_positions_selected.png")
 	
-	with open("results.txt", "w") as result:
+	with open("results_selected.txt", "w") as result:
 		result.write("Positions"+"\t"+"Percentage of complementary bases"+"\n")
 		for i in range(maxlength):
 			result.write(str(i)+"\t"+str(perces[i])+"\n")
