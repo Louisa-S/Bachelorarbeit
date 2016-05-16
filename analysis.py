@@ -9,31 +9,38 @@ from Bio.SubsMat import MatrixInfo as matlist
 from Bio.Align import AlignInfo
 import matplotlib.pyplot as plt
 from itertools import groupby
+from Bio.SubsMat.MatrixInfo import pam60
 
 #command: time python mirna.py utr.txt hsa_MTI_short2.csv miRNA_short.csv ucsc_symbols_nm.txt 
 
 #returns list of nm numbers and gene symbols
 def symbolconverter(filename):
 	table = dict()
-	result = dict()
+	#result = dict()
 	gene = []
 	with open(filename, "r") as f:
 		next(f)
-		for s in f:
-			s1 = s.split("\n")
-			s1 = s1[0].split("\r")
-			s1 = s1[0].split("\t")
+		for s in f:		
+			s = s.replace(" ", "")
+			s1 = s.split("\t")
+
+			#s1 = s1[0].split("\r")
+			#s1 = s1[0].split("\t")
 			
-			if s1[1] not in table:
-				nm = []
-				nm.append(s1[0])				
-				table[s1[1]] = nm
+			if s1[0] not in table:
+				liste = []
+				nm = s1[1].split(";")
+				for x in nm:
+					if x[0:2] == "NM":
+						liste.append(x)
+								
+				table[s1[0]] = liste
 		
-			else:
-				nm = []
-				nm = table[s1[1]]
-				nm.append(s1[0])
-				table[s1[1]] = nm 
+			#else:
+			#	nm = []
+			#	nm = table[s1[0]]
+			#	nm.append(s1[0])
+			#	table[s1[1]] = nm 
 				
 	#table2 = sorted(table, key = lambda symbol: symbol[1])
 		
@@ -65,7 +72,7 @@ def mirbaseparser(filename):
 				mirnalist[m[2].lower()] = m[3]
 				
 				if m[4] != "":
-					mirnalist[m[4].lower()] = m[5][::-1]
+					mirnalist[m[4].lower()] = m[5]
 					
 	#maxi = len(mirnalist[0][5])
 	#
@@ -82,16 +89,17 @@ def mirtarparser(filename):
 	with open(filename) as f:
 		next(f)
 		for mirna in f:
-			if "(Weak)" in mirna:
-				continue
+			#if "(Weak)" in mirna:
+			#	continue
 			m = mirna.split("\n")
 			m = m[0].split("\r")
 			m = m[0].split(";")
 			
+			if m[3] != "Functional MTI":
+				continue
 			#if m[1] not in genesymbols:
 			#	genesymbols[m[1]] = 1
-			
-			
+				
 			if m[0] in mirnalist:
 				if m[1] not in mirnalist[m[0]]:
 					genes = mirnalist[m[0]]
@@ -180,6 +188,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 	
 	maxi = 0
 	notfound = 0
+	aligncount = 0
 	
 	for m1 in mirbase:
 		if maxi < len(mirbase[m1]):
@@ -230,14 +239,25 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 			for n in nm:
 				
 				if n in genes:
+					
+					#print mlist
+					#print n
+					
+					#if mlist != "hsa-miR-203a-3p" or n != "NM_007313":
+					#	continue
+					#print match[0]
 								
 					match.append(genes[n][0])			
 					match.append(genes[n][1])			
 					match.append(genes[n][2])	
 					
-					print match		
+					#print match		
+					#reverse complement of mirna 
+					#transcribe gene, all Ts to Us
+					#alignment with gene
 				 
 					seqmirna = Seq(match[0], RNAAlphabet())
+					seqmirna = seqmirna.reverse_complement()
 					seq5utr = Seq(match[1]) 
 					size5utr = len(match[1])
 					seqgen = Seq(match[2])
@@ -245,38 +265,43 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					seq3utr = Seq(match[3])
 					size3utr = len(match[3])
 					#print sizegen
-					seq5utrtransc = seq5utr.transcribe().complement()
-					seqgentransc = seqgen.transcribe().complement()
-					seq3utrtransc = seq3utr.transcribe().complement()
+					#print size3utr
+					seq5utrtransc = seq5utr.transcribe()
+					seqgentransc = seqgen.transcribe()
+					seq3utrtransc = seq3utr.transcribe()
 					
 					#align mirna to genes
 					#align only seed sequence to utr+gene+utr
 					completegen = seq5utrtransc + seqgentransc + seq3utrtransc
 					completegen = completegen.upper()
 									
-					#seed = seqmirna[-8:-1]
-					
-					#for a in pairwise2.align.localxs(completegen, seqmirna, -10, -0.5):
+									
+					#for a in pairwise2.align.localms(completegen,seqmirna,1,-2, -2, -1):
 					#	print(format_alignment(*a))
-					#	exit()
+	
 					
 					#returns alignment: list of Sequences(2), score, start, end position
-					alignment = pairwise2.align.localxs(completegen, seqmirna, -10, -0.5)
+					alignment = pairwise2.align.localms(completegen, seqmirna,1, -2, -2, -1)
 					#print alignment
 					
 					#print alignment[0][1]
+					aligncount += len(alignment)
 					
 					#computes a line for the matrix, one line is one startposition of alignment
 					for parts in alignanalysis(alignment, len(seqmirna), maxi):
 						
 						matrix.append(parts)
+					
 				
-			
-				
+		
 		
 	analysematrix(matrix, maxi)				
 	print notfound
-		
+	print aligncount	
+	with open("no.alignments_strong.txt", "w") as out:
+		out.write(str(aligncount))
+	#print "number of alignments: "
+	
 		
 		
 		
@@ -361,38 +386,40 @@ def alignanalysis(alignment, mirnasize, maxi):
 	
 	
 	
-	for a in alignment:
-		i = 0
-		matrix = []
-		
-		while (a[1][i] == "-"):
-			i = i+1
-		
-		if i not in startpos:
-			startpos.append(i)
-			mirnaseq = a[1][i:i+mirnasize]
-			mseq = a[0][i:i+mirnasize]
-		
-			#print mirnaseq
-			#print mseq
-		
-			for index in range(mirnasize):
-				if mirnaseq[index] == mseq[index]:
-					matrix.append("X")
-				else:
-					matrix.append("O")
-						
-			
-			matrix.reverse()
-
-			
-			gaps = mirnasize
-			while gaps < maxi+1:
-				matrix.append("-")
-				gaps = gaps + 1
-			#print matrix
+	a = alignment[0]
 	
-			yield matrix
+	i = 0
+	matrix = []
+	
+	while (a[1][i] == "-"):
+		i = i+1
+	
+	if i not in startpos:
+		startpos.append(i)
+		mirnaseq = a[1][i:i+mirnasize]
+		mseq = a[0][i:i+mirnasize]
+	
+		#print mirnaseq
+		#print mseq.back_transcribe()
+	
+		for index in range(mirnasize):
+			if mirnaseq[index] == mseq[index]:
+				matrix.append("X")
+			else:
+				matrix.append("O")
+					
+		
+		matrix.reverse()
+
+		
+		gaps = mirnasize
+		while gaps < maxi+1:
+			matrix.append("-")
+			gaps = gaps + 1
+		#print matrix
+
+		yield matrix
+	
 	
 	
 	
@@ -435,9 +462,9 @@ def analysematrix(matrix, maxlength):
 	plt.bar(xaxis, perces)
 	plt.xlabel("positions in miRNA")
 	plt.ylabel("percentage of complementary bases")
-	plt.savefig("probability_positions_selected.png")
+	plt.savefig("probability_positions_strong.png")
 	
-	with open("results_selected.txt", "w") as result:
+	with open("results_strong.txt", "w") as result:
 		result.write("Positions"+"\t"+"Percentage of complementary bases"+"\n")
 		for i in range(maxlength):
 			result.write(str(i)+"\t"+str(perces[i])+"\n")
