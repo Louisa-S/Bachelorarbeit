@@ -189,6 +189,8 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 	maxi = 0
 	notfound = 0
 	aligncount = 0
+	basecount = 0
+	ca, cc, cg, cu = 0, 0, 0, 0
 	
 	for m1 in mirbase:
 		if maxi < len(mirbase[m1]):
@@ -219,6 +221,24 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 			if mlist.lower() in mirbase:
 				mi = mirbase[mlist.lower()]
 				
+				for i in range(len(mi)-2):
+					basecount += 1
+					if mi[i:i+2] == "AA":
+						ca += 1
+						#basecount += 1
+					else:
+						if mi[i:i+2] == "CC":
+							cc += 1
+							#basecount += 1
+						else:
+							if mi[i:i+2] == "GG":
+								cg += 1
+								#basecount += 1
+							else: 
+								if mi[i:i+2] == "UU":
+									cu += 1
+									#basecount += 1
+				
 				match.append(mi)
 				#if mi[1] == mirtar[0].lower():
 				#	match.append(mi[2])
@@ -235,7 +255,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 			#		else:
 			#			if mi[3] != "":
 			#				match.append(mi[4])
-				
+			'''
 			for n in nm:
 				
 				if n in genes:
@@ -285,21 +305,38 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					#print alignment
 					
 					#print alignment[0][1]
-					aligncount += len(alignment)
+					#aligncount += len(alignment)
+					#print len(alignment)
 					
 					#computes a line for the matrix, one line is one startposition of alignment
-					for parts in alignanalysis(alignment, len(seqmirna), maxi):
+					#for parts in alignanalysis(alignment, len(seqmirna), maxi):
 						
-						matrix.append(parts)
-					
+					#	matrix.append(parts)
+					'''
 				
+	
+	acontent = float(ca) / float(basecount)
+	ccontent = float(cc) / float(basecount)
+	gcontent = float(cg) / float(basecount)
+	ucontent = float(cu) / float(basecount)
+	
+	print acontent
+	print ccontent	
+	print gcontent	
+	print ucontent	
+	print basecount
+	
+	print len(matrix)
+	#analysematrix(matrix, maxi)				
+	#print notfound
+	#print aligncount	
+	with open("dinucleo_strong.txt", "w") as out:
+		out.write("AA content: "+str(acontent)+"\n")
+		out.write("CC content: "+str(ccontent)+"\n")
+		out.write("GG content: "+str(gcontent)+"\n")
+		out.write("UU content: "+str(ucontent)+"\n")
 		
-		
-	analysematrix(matrix, maxi)				
-	print notfound
-	print aligncount	
-	with open("no.alignments_strong.txt", "w") as out:
-		out.write(str(aligncount))
+		#out.write(str(aligncount))
 	#print "number of alignments: "
 	
 		
