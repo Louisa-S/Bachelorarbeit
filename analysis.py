@@ -95,7 +95,7 @@ def mirtarparser(filename):
 			m = m[0].split("\r")
 			m = m[0].split(";")
 			
-			if m[3] != "Functional MTI":
+			if m[3] != "Non-Functional MTI":
 				continue
 			#if m[1] not in genesymbols:
 			#	genesymbols[m[1]] = 1
@@ -266,15 +266,15 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					#print mlist
 					#print n
 					
-					if mlist != "hsa-miR-122-5p" or n != "NM_000875":
-						continue
+					#if mlist != "hsa-let-7f-5p" or n != "NM_001077500":
+					#	continue
 					#print match[0]
 								
 					match.append(genes[n][0])			
 					match.append(genes[n][1])			
 					match.append(genes[n][2])	
 					
-					pair.append((mlist,n))
+					#pair.append((mlist,n))
 					#print match		
 					#reverse complement of mirna 
 					#transcribe gene, all Ts to Us
@@ -288,9 +288,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					sizegen = len(match[2])
 					seq3utr = Seq(match[3])
 					size3utr = len(match[3])
-					print sizegen
-					print size3utr
-					print size5utr
+					
 					seq5utrtransc = seq5utr.transcribe()
 					seqgentransc = seqgen.transcribe()
 					seq3utrtransc = seq3utr.transcribe()
@@ -306,7 +304,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 	
 					
 					#returns alignment: list of Sequences(2), score, start, end position
-					alignment = pairwise2.align.localms(completegen, seqmirna, 5, -3, -8, -2)
+					alignment = pairwise2.align.localms(completegen, seqmirna, 5, -1, -8, -4)
 					#print alignment
 					
 					#print alignment[0][1]
@@ -315,7 +313,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					
 					#computes a line for the matrix, one line is one startposition of alignment
 					
-					for parts in alignanalysis(alignment, len(seqmirna), maxi, score):
+					for parts in alignanalysis(alignment, len(seqmirna), maxi, score, sizegen, size5utr, n, mlist):
 						
 						matrix.append(parts)
 						
@@ -323,8 +321,15 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 	#print counter[0]
 	
 	#print counter2
-	print score	
-	print pair			
+	#print score	
+	
+	
+	with open("non-scores+positions(5-1-8-4).txt", "w") as f:
+		for i in score:
+			f.write(str(i)+"\n")
+			
+			#for k in pair:
+			#	f.write(str(k)+" "+str(i)+"\n")	
 				
 	'''acontent = float(ca) / float(basecount)
 	ccontent = float(cc) / float(basecount)
@@ -372,15 +377,16 @@ def genconverter(symbol, gentable):
 
 
 #computes list with X for match and O for mismatch in aligment
-def alignanalysis(alignment, mirnasize, maxi, score):
+def alignanalysis(alignment, mirnasize, maxi, score, sizegen, size5, n, mlist):
 	#print "aligner"
 	
 	startpos = []	
+	tupel = []
 	
-	
+	tupel += [mlist, n, alignment[0][2]]
 	
 	a = alignment[0]
-	print a
+	
 	
 	for b in alignment:
 		
@@ -395,10 +401,12 @@ def alignanalysis(alignment, mirnasize, maxi, score):
 			mirnaseq = b[1][i:i+mirnasize]
 			mseq = b[0][i:i+mirnasize]
 			
-			score.append((b[2], b[3]))
+			tupel += [b[3] - sizegen - size5 + 1]
+			
+			#score.append((b[2], b[3] - sizegen - size5 + 1))
 		
-			print mirnaseq
-			print mseq.back_transcribe()
+			#print mirnaseq
+			#print mseq.back_transcribe()
 			'''if mseq.back_transcribe()[-1:] == "A":
 				counter[0] += 1
 			else:
@@ -443,8 +451,10 @@ def alignanalysis(alignment, mirnasize, maxi, score):
 			#counter[0] += len(startpos)
 			
 			
+			
 			yield matrix
-	
+			
+	score.append(tupel)
 	
 	
 	
@@ -487,12 +497,12 @@ def analysematrix(matrix, maxlength):
 	plt.bar(xaxis, perces)
 	plt.xlabel("nucleotide position")
 	plt.ylabel("ratio of complementary nucleotides")
-	plt.savefig("ratio(5-3-8-2).png")
+	plt.savefig("non-ratio(5-1-8-4).png")
 	
-	#with open("results_strong.txt", "w") as result:
-	#	result.write("Positions"+"\t"+"Percentage of complementary bases"+"\n")
-	#	for i in range(maxlength):
-	#		result.write(str(i)+"\t"+str(perces[i])+"\n")
+	with open("non-result(5-1-8-4).txt", "w") as result:
+		result.write("Positions"+"\t"+"Ratio of complementary nucleotides"+"\n")
+		for i in range(maxlength):
+			result.write(str(i)+"\t"+str(perces[i])+"\n")
 	
 	
 	

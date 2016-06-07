@@ -1,12 +1,40 @@
 import csv
 
-with open("ath_MTI_short.csv") as f:
-	mirna = f.readlines()
+#returns list of tupels with lines of table
+def dbparser(filename):
+	with open(filename) as f:
+		mirna = f.readlines()
 
-mirnalist = []
-for i in range(0, len(mirna)-1):
-	m = mirna[i]
-	m = m.split(",")
-	mirnalist.append(m)
+	mirnalist = []
+	for m in mirna:
+		m = m.split(";")
+		mirnalist.append(m)
+		
+	return mirnalist
+
+
+
+#filter out gene symbols,
+#filter out dubplicates, write list of symbols to uniquesymbols	
+
+def filtergenymbols(filename, mirnas):
+	writefile = open("genesymbols.txt", "w")
+
+	for m in mirnas:
+		s = m[1]
+		writefile.write(s)
+		writefile.write("\n")
 	
-print mirnalist[i]
+	writefile.close()	
+
+
+	with open("genesymbols.txt") as sym:
+		lines = sym.readlines()
+		lines_set = set(lines)
+		
+		unique = open("uniquesymbols.txt", "w")
+		
+		for l in lines_set:
+			unique.write(l)
+			
+		unique.close()
