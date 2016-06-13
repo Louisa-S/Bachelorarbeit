@@ -5,10 +5,20 @@ def mirid(f):
 	ids = dict()
 	
 	for line in f:
+	
+		
+		if "Non-Functional" in line:
+			continue
+		if "Functional MTI (Weak)" in line:
+			continue
+			
 		line = line.split(";")
+		
+		
 		
 		if line[0] not in ids:
 			ids[line[0]] = [line[1], line[4]]
+	
 	
 	return ids
 		
@@ -24,7 +34,8 @@ def parseurl(mlist):
 		url = 'http://mirtarbase.mbc.nctu.edu.tw/php/detail.php?mirtid='+m+'#target'
 		
 		data = urllib2.urlopen(url)
-
+		
+			
 		f = data.readlines()
 
 		s = []
@@ -32,6 +43,12 @@ def parseurl(mlist):
 
 		for line in f:
 			#print line
+			
+			if "<td>NM_" in line:
+				 l1 = line.replace(" ", "")
+				 l1 = l1.split("&")
+				 posis.append(l1[0][4:])				 
+				 
 			
 			if "<th>miRNA-target interactions (Pred" in line:
 				schreiben = True
@@ -49,7 +66,14 @@ def parseurl(mlist):
 				pos = line.split("-")
 				posis.append(pos[0])
 		
-		positions[mlist[m][0]] = [mlist[m][1]] + posis
+		if posis == []:
+			continue
+		
+		positions[mlist[m][0]] = posis
+		
+		print posis
+		
+		
 				
 	return positions
 		
@@ -66,5 +90,34 @@ with open(str(sys.argv[1])) as f:
 	
 	with open("mirtargets_positions.txt", "w") as out:
 		for i in res:
-			out.write(str(i)[1:-1]+"\n")
+			out.write(str(i[0]+" "))
+			
+			for k in range(len(i[1])):
+				out.write(str(i[1][k])+" ")
+			
+			out.write("\n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
