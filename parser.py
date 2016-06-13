@@ -118,7 +118,7 @@ def positives():
 			out.write(str(mirna[i])+";"+str(target[i])+";"+"X"+";"+"Non-Functional MTI"+"\n")
 		
 		
-positives()
+#positives()
 
 
 
@@ -131,6 +131,70 @@ def table():
 	worksheet.write('A1', 'Hello world')
 
 	workbook.close()
+	
+
+def jointable():
+	
+	pos = dict()
+	
+	with open(str(sys.argv[2])) as f:
+		for line in f:
+			if line == "":
+				break
+			
+			##line = line.replace("\n", " ")
+			line = line[:-2].split(" ")
+			
+			pos[str(line[0])+" "+str(line[1])] = line[2:]
+			
+	
+	scores = []
+	
+	with open(str(sys.argv[1])) as g:
+		
+		for line in g:
+			if line == "":
+				break
+			print line
+		
+			line = line[1:-2].split(",")
+			
+			scores.append(line)
+		
+	
+	with open("result_positions.txt", "w") as out:
+		
+		for s in scores:
+			posis = []
+			 
+			key = s[0][1:-1] + " " + s[1][2:-1]
+			
+			if key in pos:
+				posis = pos[key]
+				
+				if len(s) == 4:
+					if str(s[3]) in posis:
+						out.write(str(s)+" "+"X"+"\n")
+					else:
+						out.write(str(s)+"\n")
+					
+				elif len(s) == 5:
+					if str(s[4]) in posis or str(s[3]) in posis:
+						out.write(str(s)+" "+"X"+"\n")
+						
+				elif len(s) == 6:
+					if str(s[4]) in posis or str(s[3]) in posis or str(s[5]) in posis:
+						out.write(str(s)+" "+"X"+"\n")
+					
+				
+			
+				
+				
+			
+		
+			
+	
+jointable()
 
 
 

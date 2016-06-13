@@ -25,7 +25,7 @@ def mirid(f):
 
 def parseurl(mlist):
 	
-	positions = dict()
+	positions = []
 	
 	for m in mlist:	
 		
@@ -69,11 +69,13 @@ def parseurl(mlist):
 		if posis == []:
 			continue
 		
-		positions[mlist[m][0]] = posis
+		l = [mlist[m][0]]
+		
+		positions.append(l+posis)
 		
 		print posis
 		
-		
+	print positions
 				
 	return positions
 		
@@ -86,14 +88,11 @@ with open(str(sys.argv[1])) as f:
 		
 	positions = parseurl(mlist)
 	
-	res = positions.items()
-	
 	with open("mirtargets_positions.txt", "w") as out:
-		for i in res:
-			out.write(str(i[0]+" "))
-			
-			for k in range(len(i[1])):
-				out.write(str(i[1][k])+" ")
+		for i in positions:
+					
+			for k in range(len(i)):
+				out.write(i[k]+" ")
 			
 			out.write("\n")
 
