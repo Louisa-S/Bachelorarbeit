@@ -133,7 +133,9 @@ def table():
 	workbook.close()
 	
 
+#first argument score+positions, second argument mirtarget_positions
 def jointable():
+	#check if there are positions in the table
 	
 	pos = dict()
 	
@@ -155,42 +157,40 @@ def jointable():
 		for line in g:
 			if line == "":
 				break
-			print line
-		
+					
 			line = line[1:-2].split(",")
 			
 			scores.append(line)
 		
-	
+	found = False 
+	count = 0
+	countall = 0
 	with open("result_positions.txt", "w") as out:
 		
 		for s in scores:
+			countall = len(scores)
+
 			posis = []
 			 
 			key = s[0][1:-1] + " " + s[1][2:-1]
 			
+			out.write(str(s)+" ")
+			
 			if key in pos:
-				posis = pos[key]
+				posis = pos[key]			
 				
-				if len(s) == 4:
-					if str(s[3]) in posis:
-						out.write(str(s)+" "+"X"+"\n")
-					else:
-						out.write(str(s)+"\n")
-					
-				elif len(s) == 5:
-					if str(s[4]) in posis or str(s[3]) in posis:
-						out.write(str(s)+" "+"X"+"\n")
-						
-				elif len(s) == 6:
-					if str(s[4]) in posis or str(s[3]) in posis or str(s[5]) in posis:
-						out.write(str(s)+" "+"X"+"\n")
-					
-				
-			
-				
-				
-			
+				if len(posis) == 0:
+					continue				
+				else:
+					for i in range(3, len(s)):
+						if "-" in s[i]:
+							continue
+						for p in posis:							
+							if (int(s[i][1:]) >= int(p)-5) and (int(s[i][1:]) <= int(p)+5):
+								count += 1
+							
+			out.write(str(count)+" / "+str(countall)+" \n")		
+			found = False	
 		
 			
 	
