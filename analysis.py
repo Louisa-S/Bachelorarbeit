@@ -11,22 +11,21 @@ import matplotlib.pyplot as plt
 from itertools import groupby
 from Bio.SubsMat.MatrixInfo import pam60
 
-#command: time python mirna.py utr.txt hsa_MTI_short2.csv miRNA_short.csv ucsc_symbols_nm.txt 
+#command: time python mirna.py utr.txt hsa_MTI_id.csv miRNA_short.csv genid_refseq.txt
 
-#returns list of nm numbers and gene symbols
+#returns a dictionary with gene id as key and a list of nm numbers as values
 def symbolconverter(filename):
 	table = dict()
-	#result = dict()
 	gene = []
 	with open(filename, "r") as f:
 		next(f)
-		for s in f:		
+		for s in f:	
+			if s == "\n":
+				break
+					
 			s = s.replace(" ", "")
 			s1 = s.split("\t")
-
-			#s1 = s1[0].split("\r")
-			#s1 = s1[0].split("\t")
-			
+				
 			if s1[0] not in table:
 				liste = []
 				nm = s1[1].split(";")
@@ -36,34 +35,20 @@ def symbolconverter(filename):
 								
 				table[s1[0]] = liste
 		
-			#else:
-			#	nm = []
-			#	nm = table[s1[0]]
-			#	nm.append(s1[0])
-			#	table[s1[1]] = nm 
-				
-	#table2 = sorted(table, key = lambda symbol: symbol[1])
-		
-	#for key, group in groupby(table2, lambda x: x[1]):
-	#	gene.append(key)		
-	#	nmlist = []
-	#	for nm in group:
-	#		nmlist.append(nm[0])
-	#		
-	#	gene.append(nmlist)		
-	#	result.append(gene)
-	#	gene = []
-	#print table	
 	return table
 
 
 
-#returns list of tupels with lines of table
+#returns a dictionary with mirna name as key, mirna sequence as value
+#only mature mirnas are stored
 def mirbaseparser(filename):
 	mirnalist = dict()
 	with open(filename) as f:
 		next(f)
 		for mirna in f:
+			if mirna == "\n":
+				break
+				
 			if mirna[0:3] == "hsa":
 				m = mirna.split("\n")
 				m = m[0].split("\r")
@@ -82,23 +67,23 @@ def mirbaseparser(filename):
 	#
 	#print maxi		
 	return mirnalist
-
+	
+	
+#returns a dictionary with minra name as value, list of gene ids as value
 def mirtarparser(filename):
 	mirnalist = dict()
-	#genesymbols = dict()
 	with open(filename) as f:
 		next(f)
 		for mirna in f:
-			#if "(Weak)" in mirna:
-			#	continue
+			if mirna == "\n":
+				break
+				
 			m = mirna.split("\n")
 			m = m[0].split("\r")
 			m = m[0].split(";")
 			
 			if m[3] != "Non-Functional MTI":
 				continue
-			#if m[1] not in genesymbols:
-			#	genesymbols[m[1]] = 1
 				
 			if m[0] in mirnalist:
 				if m[1] not in mirnalist[m[0]]:
@@ -109,18 +94,17 @@ def mirtarparser(filename):
 				genes = []
 				genes.append(m[1])
 				mirnalist[m[0]] = genes
-			
-			#mirnalist.append(m)
-	
+				
 	#with open("geneconversion.txt", "w") as f:
 	#	for x in genesymbols:
 	#		f.write(x)
 	#		f.write("\n")
-			
+	
 	return mirnalist	
 	
 
 
+#returns a dictionary with NM number as key, list of 5p utr, gen and 3p utr as value
 def parsegenes (filename):
 	with open(filename) as gene:
 		genelist = dict()
@@ -130,8 +114,12 @@ def parsegenes (filename):
 		utr3 = ""
 		genseq = ""
 		first = 1
+		
 		#utr5, utr3, genseq as strings, boolean genexist if gene is between utrs
 		for line in gene:
+			#if line == "\n":
+			#	break
+				
 			if first == 1:
 				gen.append(line)
 				first += 1
@@ -182,44 +170,38 @@ def parsegenes (filename):
 	
 	return genelist
 	
+	
 
-#build reverse complement of genes !!!		
+#for every entry in mirtarbase finds match 
+#match: Sequence of mirna, sequence of 5p utr, gene, 3p utr 	
 def findmatch(mirtarbase, mirbase, genes, gentable):
 	
-	maxi = 0
-	notfound = 0
-	
-	basecount = 0
-	ca, cc, cg, cu = 0, 0, 0, 0
+	maxi = 0	
+	#basecount = 0
+	#ca, cc, cg, cu = 0, 0, 0, 0
 	score = []
 	pair = []
 	
-	
+	#computes the maximum length of all mirnas
 	for m1 in mirbase:
 		if maxi < len(mirbase[m1]):
 			maxi = len(mirbase[m1])
 	
-	print maxi	
-	
 	#matrix with one mirna per line
-	#X for match in alignment, O for mismatch
+	#1 for match in alignment, O for mismatch
 	matrix = []
+	
 	for mlist in mirtarbase:
 		
 		for mirtar in mirtarbase[mlist]:
 			match = []
 			found = False
 			
-			#there can be more than 1 NM transcript 
 			if mirtar in gentable:
 				nm = gentable[mirtar]
 			else:
-				print "Gensymbol not found: "+mirtar
-				#print mirtar[1]
-				notfound += 1
-				continue
-				
-			#print mirtar[0][:-3]
+				print "Gensymbol not found: "+mirtar	
+				continue				
 			
 			if mlist.lower() in mirbase:
 				mi = mirbase[mlist.lower()]
@@ -243,50 +225,41 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 									#basecount += 1'''
 				
 				match.append(mi)
-				#if mi[1] == mirtar[0].lower():
-				#	match.append(mi[2])
-				#else:
-				#	if mi[3] != "":
-				#		match.append(mi[4])
+				
 			else:
 				continue
-			#else:
-			#	if mirtar[0][:-3].lower() in mirbase:
-			#		mi = mirbase[mirtar[0][:-3].lower()]
-			#		if mi[1] == mirtar[0].lower():
-			#			match.append(mi[2])
-			#		else:
-			#			if mi[3] != "":
-			#				match.append(mi[4])
 			
+			origmatch = match
 			for n in nm:
 				
+				match = origmatch
+				
 				if n in genes:
-					
-					#print mlist
-					#print n
-					
-					#if mlist != "hsa-let-7f-5p" or n != "NM_001077500":
-					#	continue
-					#print match[0]
+										
+					#if mlist != "hsa-miR-106a-5p" or n != "NM_005734":
+					#	continue					
 								
 					match.append(genes[n][0])			
 					match.append(genes[n][1])			
 					match.append(genes[n][2])	
 					
+					#print match
+					
 					#pair.append((mlist,n))
-					#print match		
+			
 					#reverse complement of mirna 
 					#transcribe gene, all Ts to Us
 					#alignment with gene
 				 
 					seqmirna = Seq(match[0], RNAAlphabet())
 					seqmirna = seqmirna.reverse_complement()
+					
 					seq5utr = Seq(match[1]) 
-					size5utr = len(match[1])
 					seqgen = Seq(match[2])
-					sizegen = len(match[2])
 					seq3utr = Seq(match[3])
+					
+					size5utr = len(match[1])					
+					sizegen = len(match[2])					
 					size3utr = len(match[3])
 					
 					seq5utrtransc = seq5utr.transcribe()
@@ -294,7 +267,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					seq3utrtransc = seq3utr.transcribe()
 					
 					#align mirna to genes
-					#align only seed sequence to utr+gene+utr
+					
 					completegen = seq5utrtransc + seqgentransc + seq3utrtransc
 					completegen = completegen.upper()
 									
@@ -304,7 +277,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 	
 					
 					#returns alignment: list of Sequences(2), score, start, end position
-					alignment = pairwise2.align.localms(completegen, seqmirna, 5, -1, -8, -4)
+					alignment = pairwise2.align.localms(completegen, seqmirna, 2,-2,-5,-4)
 					#print alignment
 					
 					#print alignment[0][1]
@@ -313,98 +286,46 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					
 					#computes a line for the matrix, one line is one startposition of alignment
 					
-					for parts in alignanalysis(alignment, len(seqmirna), maxi, score, sizegen, size5utr, n, mlist):
-						
+					for parts in alignanalysis(alignment, len(seqmirna), maxi, score, sizegen, size5utr, n, mlist):						
 						matrix.append(parts)
 						
-	#print "Number of alignments: "
-	#print counter[0]
-	
-	#print counter2
-	#print score	
+		
 	
 	
-	with open("non-scores+positions(5-1-8-4).txt", "w") as f:
+	with open("results/non-scores+positions2-2-5-4.txt", "w") as f:
 		for i in score:
-			f.write(str(i)+"\n")
-			
-			#for k in pair:
-			#	f.write(str(k)+" "+str(i)+"\n")	
+			f.write(str(i)+"\n")	
 				
-	'''acontent = float(ca) / float(basecount)
-	ccontent = float(cc) / float(basecount)
-	gcontent = float(cg) / float(basecount)
-	ucontent = float(cu) / float(basecount)
-	
-	print acontent
-	print ccontent	
-	print gcontent	
-	print ucontent	
-	print basecount
-	
-	print len(matrix)'''
 	analysematrix(matrix, maxi)				
-	#print notfound
-
-	#with open("dinucleo_strong.txt", "w") as out:
-	#	out.write("AA content: "+str(acontent)+"\n")
-	#	out.write("CC content: "+str(ccontent)+"\n")
-	#	out.write("GG content: "+str(gcontent)+"\n")
-	#	out.write("UU content: "+str(ucontent)+"\n")
-		
-		#out.write(str(aligncount))
-	#print "number of alignments: "
-	
-		
-		
-		
-		
-	
-		
-	#consider experiment type
-				
-"""	
-
-def genconverter(symbol, gentable):
-	for gen in gentable:
-		if symbol == gen[0]:
-			#print gen[1] 
-			#print "converted"
-			return gen[1]
-	
-	return "Gensymbol not found!"
-"""
 
 
-#computes list with X for match and O for mismatch in aligment
-def alignanalysis(alignment, mirnasize, maxi, score, sizegen, size5, n, mlist):
-	#print "aligner"
+
+#computes list with 1 for match and O for mismatch in aligment
+def alignanalysis(alignment, mirnasize, maxi, score, sizegen, size5, nm, mlist):
 	
 	startpos = []	
-	tupel = []
+	tupel = ""
 	
-	tupel += [mlist, n, alignment[0][2]]
+	#list of mirnanmae, NM number and alignment score
+	tupel += str(mlist)+ " " + str(nm) + " " + str(alignment[0][2]) + " "
 	
-	a = alignment[0]
-	
-	
-	for b in alignment:
-		
+	for ali in alignment:		
 		i = 0
 		matrix = []
 		
-		while (b[1][i] == "-"):
+		#computes the startposition of alignment
+		while (ali[1][i] == "-"):
 			i = i+1
 		
 		if i not in startpos:
 			startpos.append(i)
-			mirnaseq = b[1][i:i+mirnasize]
-			mseq = b[0][i:i+mirnasize]
+			mirnaseq = ali[1][i:i+mirnasize]
+			mseq = ali[0][i:i+mirnasize]
 			
-			tupel += [b[3] - sizegen - size5 + 1]
-			
-			#score.append((b[2], b[3] - sizegen - size5 + 1))
-		
+			#adds the starposition depending on 3p utr
+			#will be negative if not in 3p utr
+			tupel += str(ali[3] - sizegen - size5 + 1)
+					
 			#print mirnaseq
 			#print mseq.back_transcribe()
 			'''if mseq.back_transcribe()[-1:] == "A":
@@ -432,42 +353,38 @@ def alignanalysis(alignment, mirnasize, maxi, score, sizegen, size5, n, mlist):
 							counter2[3] += 1
 			
 			'''
+			
+			#computes array of 1 and 0 for the base positions
 			for index in range(mirnasize):
 				if mirnaseq[index] == mseq[index]:
 					matrix.append(1)
 				else:
 					matrix.append(0)
 						
-			
+			#reverses this array to get it from the 5p end on
 			matrix.reverse()
-
 			
+			#adds - to make every mirna as long as the longest			
 			gaps = mirnasize
 			
 			while gaps < maxi+1:
 				matrix.append("-")
 				gaps = gaps + 1
-			#print matrix
-			#counter[0] += len(startpos)
-			
-			
-			
+					
 			yield matrix
 			
-	score.append(tupel)
+	#adds the tupel with the information to the score list for the final table
+	score.append(tupel)	
 	
 	
 	
-	
-	
-def analysematrix(matrix, maxlength):
-		
-	#the dimension is the number of mirnas analysed
-	
-								
+#makes the plot of the complement base pairs in the alignment
+def analysematrix(matrix, maxlength):	
+							
 	perces = []
 	xaxis = []
 	
+	#defines the x axis
 	for x in range(maxlength):
 		xaxis.append(x)
 	
@@ -475,6 +392,8 @@ def analysematrix(matrix, maxlength):
 	#for every character in the sequence, if mirnalength is < maxlength of a mirna it is filled with gaps "-" at the end
 	for i in range(maxlength):	
 		sumx = 0 	
+		
+		#the dimension is the number of mirnas analysed		
 		dimension = len(matrix)
 		
 		for line in matrix:
@@ -485,21 +404,20 @@ def analysematrix(matrix, maxlength):
 					dimension = dimension - 1
 			
 		if dimension > 0:
-			perc = float(sumx) / float(dimension)
-	
-			#print perc	
-		
+			perc = float(sumx) / float(dimension)		
 			perces.append(perc)
 		else:
 			perces.append(0)
 		
-		
+	
+	#plots the graph
 	plt.bar(xaxis, perces)
 	plt.xlabel("nucleotide position")
 	plt.ylabel("ratio of complementary nucleotides")
-	plt.savefig("non-ratio(5-1-8-4).png")
+	plt.savefig("results/non-ratio2-2-5-4.png")
 	
-	with open("non-result(5-1-8-4).txt", "w") as result:
+	#stores the percentages for each position in a file
+	with open("results/non-result2-2-5-4.txt", "w") as result:
 		result.write("Positions"+"\t"+"Ratio of complementary nucleotides"+"\n")
 		for i in range(maxlength):
 			result.write(str(i)+"\t"+str(perces[i])+"\n")

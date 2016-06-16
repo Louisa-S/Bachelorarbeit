@@ -7,6 +7,7 @@ from Bio.Alphabet import RNAAlphabet
 from Bio import AlignIO
 
 from random import randint
+import matplotlib.pyplot as plt
 
 
 #import xlwt as xlsw
@@ -195,8 +196,6 @@ def jointable():
 			
 	
 jointable()
-
-
 
 
 
