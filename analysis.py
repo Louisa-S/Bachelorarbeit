@@ -82,7 +82,7 @@ def mirtarparser(filename):
 			m = m[0].split("\r")
 			m = m[0].split(";")
 			
-			if m[3] != "Non-Functional MTI":
+			if m[3] != "Functional MTI":
 				continue
 				
 			if m[0] in mirnalist:
@@ -277,7 +277,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 	
 					
 					#returns alignment: list of Sequences(2), score, start, end position
-					alignment = pairwise2.align.localms(completegen, seqmirna, 2,-2,-5,-4)
+					alignment = pairwise2.align.localxs(completegen, seqmirna, -5, -1)
 					#print alignment
 					
 					#print alignment[0][1]
@@ -292,7 +292,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 		
 	
 	
-	with open("results/non-scores+positions2-2-5-4.txt", "w") as f:
+	with open("results/scores+positions-5-1.txt", "w") as f:
 		for i in score:
 			f.write(str(i)+"\n")	
 				
@@ -325,6 +325,8 @@ def alignanalysis(alignment, mirnasize, maxi, score, sizegen, size5, nm, mlist):
 			#adds the starposition depending on 3p utr
 			#will be negative if not in 3p utr
 			tupel += str(ali[3] - sizegen - size5 + 1)
+			tupel += " "
+			print tupel
 					
 			#print mirnaseq
 			#print mseq.back_transcribe()
@@ -414,10 +416,10 @@ def analysematrix(matrix, maxlength):
 	plt.bar(xaxis, perces)
 	plt.xlabel("nucleotide position")
 	plt.ylabel("ratio of complementary nucleotides")
-	plt.savefig("results/non-ratio2-2-5-4.png")
+	plt.savefig("results/ratio-5-1.png")
 	
 	#stores the percentages for each position in a file
-	with open("results/non-result2-2-5-4.txt", "w") as result:
+	with open("results/result-5-1.txt", "w") as result:
 		result.write("Positions"+"\t"+"Ratio of complementary nucleotides"+"\n")
 		for i in range(maxlength):
 			result.write(str(i)+"\t"+str(perces[i])+"\n")
