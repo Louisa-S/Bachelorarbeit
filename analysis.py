@@ -205,25 +205,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 			
 			if mlist.lower() in mirbase:
 				mi = mirbase[mlist.lower()]
-				
-				'''for i in range(len(mi)-2):
-					basecount += 1
-					if mi[i:i+2] == "AA":
-						ca += 1
-						#basecount += 1
-					else:
-						if mi[i:i+2] == "CC":
-							cc += 1
-							#basecount += 1
-						else:
-							if mi[i:i+2] == "GG":
-								cg += 1
-								#basecount += 1
-							else: 
-								if mi[i:i+2] == "UU":
-									cu += 1
-									#basecount += 1'''
-				
+								
 				match.append(mi)
 				
 			else:
@@ -243,8 +225,7 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					match.append(genes[n][1])			
 					match.append(genes[n][2])	
 					
-					#print match
-					
+						
 					#pair.append((mlist,n))
 			
 					#reverse complement of mirna 
@@ -271,14 +252,10 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					completegen = seq5utrtransc + seqgentransc + seq3utrtransc
 					completegen = completegen.upper()
 									
-									
-					#for a in pairwise2.align.localms(completegen,seqmirna,1,-2, -2, -1):
-					#	print(format_alignment(*a))
-	
-					
+				
 					#returns alignment: list of Sequences(2), score, start, end position
-					alignment = pairwise2.align.localxs(completegen, seqmirna, -5, -1)
-					#print alignment
+					alignment = pairwise2.align.localms(completegen, seqmirna,5,-4,-6,-4)
+			
 					
 					#print alignment[0][1]
 					#aligncount += len(alignment)
@@ -286,27 +263,28 @@ def findmatch(mirtarbase, mirbase, genes, gentable):
 					
 					#computes a line for the matrix, one line is one startposition of alignment
 					
-					for parts in alignanalysis(alignment, len(seqmirna), maxi, score, sizegen, size5utr, n, mlist):						
+					for parts in alignanalysis(alignment, len(seqmirna), score, sizegen, size5utr, n, mlist):						
 						matrix.append(parts)
 						
 		
 	
 	
-	with open("results/scores+positions-5-1.txt", "w") as f:
+	with open("resultsneu/non-scores+positions5-4-6-4_new.txt", "w") as f:
 		for i in score:
 			f.write(str(i)+"\n")	
 				
-	analysematrix(matrix, maxi)				
+	analysematrix(matrix)				
 
 
 
 #computes list with 1 for match and O for mismatch in aligment
-def alignanalysis(alignment, mirnasize, maxi, score, sizegen, size5, nm, mlist):
+def alignanalysis(alignment, mirnasize, score, sizegen, size5, nm, mlist):
 	
 	startpos = []	
 	tupel = ""
+	maxi = 22
 	
-	#list of mirnanmae, NM number and alignment score
+	#list of mirnaname, NM number and alignment score
 	tupel += str(mlist)+ " " + str(nm) + " " + str(alignment[0][2]) + " "
 	
 	for ali in alignment:		
@@ -326,50 +304,24 @@ def alignanalysis(alignment, mirnasize, maxi, score, sizegen, size5, nm, mlist):
 			#will be negative if not in 3p utr
 			tupel += str(ali[3] - sizegen - size5 + 1)
 			tupel += " "
-			print tupel
-					
-			#print mirnaseq
-			#print mseq.back_transcribe()
-			'''if mseq.back_transcribe()[-1:] == "A":
-				counter[0] += 1
-			else:
-				if mseq.back_transcribe()[-1:] == "C":
-					counter[1] += 1
-				else:
-					if mseq.back_transcribe()[-1:] == "G":
-						counter[2] += 1
-					else:
-						if mseq.back_transcribe()[-1:] == "T":
-							counter[3] += 1'''
 			
-			''''if mseq.back_transcribe()[-2:-1] == "A":
-				counter2[0] += 1
-			else:
-				if mseq.back_transcribe()[-2:-1] == "C":
-					counter2[1] += 1
-				else:
-					if mseq.back_transcribe()[-2:-1] == "G":
-						counter2[2] += 1
-					else:
-						if mseq.back_transcribe()[-2:-1] == "T":
-							counter2[3] += 1
-			
-			'''
+			mirnaseq = mirnaseq[::-1]
+			mseq = mseq[::-1]
 			
 			#computes array of 1 and 0 for the base positions
-			for index in range(mirnasize):
+			for index in range(min(len(mirnaseq), len(mseq))):
 				if mirnaseq[index] == mseq[index]:
 					matrix.append(1)
 				else:
 					matrix.append(0)
 						
 			#reverses this array to get it from the 5p end on
-			matrix.reverse()
+			#matrix.reverse()
 			
 			#adds - to make every mirna as long as the longest			
 			gaps = mirnasize
 			
-			while gaps < maxi+1:
+			while gaps < maxi:
 				matrix.append("-")
 				gaps = gaps + 1
 					
@@ -381,18 +333,18 @@ def alignanalysis(alignment, mirnasize, maxi, score, sizegen, size5, nm, mlist):
 	
 	
 #makes the plot of the complement base pairs in the alignment
-def analysematrix(matrix, maxlength):	
+def analysematrix(matrix):	
 							
 	perces = []
 	xaxis = []
 	
 	#defines the x axis
-	for x in range(maxlength):
+	for x in range(22):
 		xaxis.append(x)
 	
 	
 	#for every character in the sequence, if mirnalength is < maxlength of a mirna it is filled with gaps "-" at the end
-	for i in range(maxlength):	
+	for i in range(22):	
 		sumx = 0 	
 		
 		#the dimension is the number of mirnas analysed		
@@ -401,9 +353,9 @@ def analysematrix(matrix, maxlength):
 		for line in matrix:
 			if line[i] == 1:
 				sumx = sumx + 1
-			else:
-				if line[i] == "-":
-					dimension = dimension - 1
+			
+				#if line[i] == "-":
+				#	dimension = dimension - 1
 			
 		if dimension > 0:
 			perc = float(sumx) / float(dimension)		
@@ -414,14 +366,14 @@ def analysematrix(matrix, maxlength):
 	
 	#plots the graph
 	plt.bar(xaxis, perces)
-	plt.xlabel("nucleotide position")
-	plt.ylabel("ratio of complementary nucleotides")
-	plt.savefig("results/ratio-5-1.png")
+	plt.xlabel("Nucleotide position")
+	plt.ylabel("Ratio of complementary nucleotides")
+	plt.savefig("resultsneu/non-ratio5-4-6-4_new.png")
 	
 	#stores the percentages for each position in a file
-	with open("results/result-5-1.txt", "w") as result:
+	with open("resultsneu/non-result5-4-6-4_new.txt", "w") as result:
 		result.write("Positions"+"\t"+"Ratio of complementary nucleotides"+"\n")
-		for i in range(maxlength):
+		for i in range(22):
 			result.write(str(i)+"\t"+str(perces[i])+"\n")
 	
 	

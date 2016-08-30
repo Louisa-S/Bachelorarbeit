@@ -28,22 +28,6 @@ def filterid():
 			out.write(dat+"\n")
 				
 
-'''
-waterc = NeedleCommandline()
-seqa = Seq("ACUG", RNAAlphabet())
-seqb = Seq("AUCGUCGCUAGACUGUUU", RNAAlphabet())
-waterc.asequence = "asis:ACUG"
-waterc.bsequence = "asis:AUCGGGACUG"
-waterc.gapopen = 10
-waterc.gapextend = 0.5
-waterc.outfile = "out.txt"
-print waterc
-print waterc.outfile
-
-stdout, stderr = waterc()
-print stdout+stderr
-'''
-
 
 def idfile():
 	strong, weak, other = 0, 0, 0
@@ -116,23 +100,12 @@ def positives():
 	with open("nonfunct.csv", "w") as out:
 		
 		for i in range(len(mirna)):
-			out.write(str(mirna[i])+";"+str(target[i])+";"+"X"+";"+"Non-Functional MTI"+"\n")
+			out.write(str(mirna[i])+";"+str(target[i])+";"+"X"+";"+"Functional MTI"+"\n")
 		
 		
 #positives()
 
 
-
-
-def table():
-
-	workbook = xlsw.Workbook("hello.xlsx")
-	worksheet = workbook.add_worksheet()
-
-	worksheet.write('A1', 'Hello world')
-
-	workbook.close()
-	
 
 #first argument score+positions, second argument mirtarget_positions
 def jointable():
