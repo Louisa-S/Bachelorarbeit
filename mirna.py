@@ -7,21 +7,10 @@ import numpy as np
 #mirna db parsen
 #utr file parsen	
 
-'''
-with open("david_converted_txt", "w") as output:
-
-	with open("david_symbols.txt") as f:
-		next(f)
-		for line in f:
-			sym = line.split("\t")
-			print sym
-			if sym[2] == "Homo sapiens":
-				output.write(sym[1]+"\t"+sym[0]+"\n")
-			else:
-				continue
-			
-'''
-
+p1 = sys.argv[6]
+p2 = sys.argv[7]
+p3 = sys.argv[8]
+p4 = sys.argv[9]
 
 convertedgenes = analysis.symbolconverter(str(sys.argv[4]))
 #print convertedgenes
@@ -43,4 +32,4 @@ print "Genelist done"
 
 #print ("data parsing was successful!")
 
-analysis.findmatch(mirtars, mirnas, genelist, convertedgenes)
+analysis.findmatch(mirtars, mirnas, genelist, convertedgenes, p1, p2, p3, p4)
